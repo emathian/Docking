@@ -51,6 +51,8 @@ double dist_atom2(struct Atom *atom1, struct Atom *atom2);
 float pseudo_valence_angle(struct Atom *A, struct Atom *B, struct Atom *C);
 /* Returns the angle according between three atoms.  */
 
+vector <Atom *> intersected(struct Atom *seq1, struct Atom *seq2, const int numAtoms_f1, const int numAtoms_f2);
+
 /*
  * Declare an array to hold data read from the ATOM records of a PDB file.
  */
@@ -195,19 +197,37 @@ int main(int argc, char ** argv)
 
     numAtoms_f2 = read_data(argv[2], 2);
 
-    for (i=1; i<=numAtoms_f2; ++i) {
+    /*for (i=1; i<=numAtoms_f1; ++i) {
         write_pdb_atom(
-            atom_c2[i].serial,
-            atom_c2[i].atomName,
-            atom_c2[i].altLoc,
-            atom_c2[i].resName,
-            atom_c2[i].chainID,
-            atom_c2[i].resSeq,
-            atom_c2[i].iCode,
-            atom_c2[i].centre);
+            atom_c1[i].serial,
+            atom_c1[i].atomName,
+            atom_c1[i].altLoc,
+            atom_c1[i].resName,
+            atom_c1[i].chainID,
+            atom_c1[i].resSeq,
+            atom_c1[i].iCode,
+            atom_c1[i].centre);
+    }*/
+
+    vector<Atom *> intersected_Test;
+    intersected_Test = intersected(&atom_c1[0], &atom_c2[0], numAtoms_f1, numAtoms_f2);
+
+    sort( intersected_Test.begin(),intersected_Test.end() );
+    intersected_Test.erase( unique( intersected_Test.begin(), intersected_Test.end() ), intersected_Test.end() );
+
+    int cc =0;
+
+    for (int i = 0; i < intersected_Test.size(); ++i)
+    {
+        Atom c_atom = *intersected_Test[i];
+        printf("%5d %s %d%s\n",
+                    c_atom.serial,
+                     c_atom.resName,
+                     c_atom.resSeq,
+                    c_atom.atomName);
+        cc++;
     }
-
-
+    printf("\n \n Nb_ele: %d\n", cc);
     return 0;
 }
 
@@ -259,4 +279,22 @@ float pseudo_valence_angle(struct Atom *A, struct Atom *B, struct Atom *C)
     double p =  prod_scal / (norm_AB * norm_BC);
     float theta = acos(p)*(180/M_PI); // Degree
     return theta;
+}
+
+
+vector <Atom *> intersected(struct Atom *seq1, struct Atom *seq2, const int numAtoms_f1, const int numAtoms_f2){
+    vector <Atom *> v_sol;
+    float d;
+    int c=0;
+    for (int i = 1; i <= numAtoms_f1; ++i)
+    {
+        for (int j = 1; j <= numAtoms_f2; ++j){
+            d= dist_atom2( &seq1[i],  &seq2[j]);
+            if(d <= 4){;
+                c++;
+                v_sol.push_back(&seq2[j]);
+            }
+        }
+    }
+    return v_sol;
 }
